@@ -1,11 +1,12 @@
 import torch
+import torch.nn as nn
 import pytorch_lightning as pl
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from transformers import AutoModelForSequenceClassification
 from torchmetrics import Accuracy, F1Score as F1
 
-class ArgumentModel(pl.LightningModule):
+class ArgumentModel(pl.LightningModule, nn.Module):
     def __init__(self, model_name, lr):
         super().__init__()
 

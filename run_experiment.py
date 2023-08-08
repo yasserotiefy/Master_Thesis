@@ -32,4 +32,4 @@ if __name__ == "__main__":
 
     # Run the hyperparameter optimization
     sweep_id = wandb.sweep(sweep_config, project="master-thesis")
-    wandb.agent(sweep_id, function=hyperparameter_optimization, count=5)
+    wandb.agent(sweep_id, function=hyperparameter_optimization)

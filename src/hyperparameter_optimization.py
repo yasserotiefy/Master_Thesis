@@ -11,8 +11,7 @@ import torch
 from .data_preparation import load_and_process_data
 
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 file_path = "data/argument_relation_class.csv"  # replace with the path to your data file
 
@@ -20,7 +19,9 @@ file_path = "data/argument_relation_class.csv"  # replace with the path to your 
 df_train, df_val = load_and_process_data(file_path)
 
 
-def hyperparameter_optimization(config=None, device=DEVICE):
+def hyperparameter_optimization(config=None, device="cpu"):
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     best_f1 = 0
     best_accuracy = 0
@@ -37,6 +38,7 @@ def hyperparameter_optimization(config=None, device=DEVICE):
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
         model = ArgumentModel(config.model_name, config.lr)
+        model.to(device)
         train_model(model, train_data_loader, val_data_loader, config.epochs, config.lr, wandb, device)
         accuracy, f1 = evaluate_model(model, val_data_loader, device)
         wandb.log({"val_accuracy": accuracy, "val_f1": f1})
