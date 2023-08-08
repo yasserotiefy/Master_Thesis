@@ -45,7 +45,7 @@ def train_model(model, train_data_loader, val_data_loader, epochs, lr, wandb, de
             loss.backward()
             optimizer.step()
             
-        acc_score, f1 = evaluate_model(model, train_data_loader, wandb, device)
+        acc_score, f1 = evaluate_model(model, train_data_loader, device)
         wandb.log({"epoch_train_accuracy": acc_score, "epoch_train_f1": f1})
 
         model = model.eval()
@@ -62,7 +62,7 @@ def train_model(model, train_data_loader, val_data_loader, epochs, lr, wandb, de
         train_loss /= len(train_data_loader)
         val_loss /= len(val_data_loader)
 
-        acc, f1 = evaluate_model(model, val_data_loader, wandb, device)
+        acc, f1 = evaluate_model(model, val_data_loader, device)
 
         wandb.log({"epoch_val_accuracy": acc, "epoch_val_f1": f1})
         
@@ -71,7 +71,7 @@ def train_model(model, train_data_loader, val_data_loader, epochs, lr, wandb, de
 
 
 
-def evaluate_model(model, data_loader, wandb, device="cpu"):
+def evaluate_model(model, data_loader, device="cpu"):
     model = model.eval()
 
     all_preds = []
