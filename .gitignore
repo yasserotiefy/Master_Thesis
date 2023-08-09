@@ -162,4 +162,5 @@ cython_debug/
 lightning_logs/
 logs/
 wandb/
+master-thesis/
 
