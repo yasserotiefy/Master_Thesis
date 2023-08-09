@@ -21,7 +21,7 @@ for i, row in df.iterrows():
     
     for premise, relation_type in zip(premises, relation_types):
         # Concatenate claim_text and premise
-        text = claim_text + " " + premise
+        text = claim_text + " [SEP] " + premise
         texts.append(text)
         
         # Convert relation type to binary
@@ -36,7 +36,7 @@ claim_indices = np.random.permutation(new_df.shape[0])
 premise_indices = np.random.permutation(new_df.shape[0])
 
 half = len(claim_indices)//2 -1
-new_df.loc[claim_indices[:half], 'text'] = new_df.loc[claim_indices[:half], 'text'] + " " + new_df.loc[premise_indices[half:], 'text']
+new_df.loc[claim_indices[:half], 'text'] = new_df.loc[claim_indices[:half], 'text'] + " [SEP] " + new_df.loc[premise_indices[half:], 'text']
 new_df.loc[claim_indices[:half], 'label'] = 0
 
 new_df = new_df.dropna()

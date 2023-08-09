@@ -1,15 +1,14 @@
 from sklearn.model_selection import StratifiedKFold
 from .data_preparation import create_data_loader
 from transformers import AutoTokenizer
-import wandb
 from .argument_model import ArgumentModel
 import os
 import torch
 from .data_preparation import load_and_process_data
 import numpy as np
-import torch.nn as nn
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
+import wandb
 
 
 file_path = "data/argument_relation_class.csv"  # replace with the path to your data file
@@ -24,6 +23,8 @@ best_f1 = 0
 best_accuracy = 0
 
 def hyperparameter_optimization():
+    global best_f1
+    global best_accuracy
     """Hyperparameter optimization using wandb sweeps.
 
     """
@@ -75,7 +76,7 @@ def hyperparameter_optimization():
         # Save the best model to wandb
         torch.save(model.state_dict(), os.path.join(wandb_logger.experiment.dir, 'best_model.pt'))
         artifact_name = f"{wandb_logger.experiment.id}_model"
-        at = wandb_logger.experiment.Artifact(artifact_name, type="model")
+        at = wandb.Artifact(artifact_name, type="model")
         at.add_file(os.path.join(wandb_logger.experiment.dir, 'best_model.pt'))
         wandb_logger.experiment.log_artifact(at, aliases=[f"best_model_{wandb_logger.experiment.id}"])
         best_f1 = mean_f1
