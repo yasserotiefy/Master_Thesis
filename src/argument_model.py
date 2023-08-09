@@ -48,9 +48,9 @@ class ArgumentModel(pl.LightningModule):
         self.train_accuracy(preds, labels)
         self.train_f1(preds, labels)
         # log this values to wandb
-        self.log('train_loss', loss, on_step=True, prog_bar=True, on_epoch=False)
-        self.log('train_acc', self.train_accuracy, on_step=True, on_epoch=False, prog_bar=True)
-        self.log('train_f1', self.train_f1, on_step=True, on_epoch=False, prog_bar=True)
+        self.log('train_loss', loss, on_step=True, prog_bar=True, on_epoch=True, logger=True)
+        self.log('train_acc', self.train_accuracy, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_f1', self.train_f1, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
     
     def validation_step(self, batch, batch_idx):

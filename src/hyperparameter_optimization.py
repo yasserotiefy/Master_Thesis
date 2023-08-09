@@ -15,24 +15,21 @@ from pytorch_lightning.loggers import WandbLogger
 file_path = "data/argument_relation_class.csv"  # replace with the path to your data file
 
 # Load and process the data
-df_train, df_val = load_and_process_data(file_path)
+df_train = load_and_process_data(file_path)
 
 # Get a list of device ids
 pl.seed_everything(42)
 
+best_f1 = 0
+best_accuracy = 0
 
 def hyperparameter_optimization():
     """Hyperparameter optimization using wandb sweeps.
 
     """
-    wandb.init(project="master-thesis")
-    config = wandb.config
-    current_id = wandb.run.id
-    wandb.finish()
-    wandb_logger = WandbLogger(project="master-thesis", id=current_id)
-
-    best_f1 = 0
-    best_accuracy = 0
+    # Initialize the wandb logger
+    wandb_logger = WandbLogger(project="master-thesis")
+    config = wandb_logger.experiment.config
 
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -73,14 +70,14 @@ def hyperparameter_optimization():
     # Log the mean and standard deviation to wandb
     wandb_logger.log_metrics({"mean_accuracy": mean_accuracy, "std_accuracy": std_accuracy})
     wandb_logger.log_metrics({"mean_f1": mean_f1, "std_f1": std_f1})
-
+    
     if mean_f1 > best_f1:
         # Save the best model to wandb
-        torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'best_model.pt'))
-        artifact_name = f"{wandb.run.id}_model"
-        at = wandb.Artifact(artifact_name, type="model")
-        at.add_file(os.path.join(wandb.run.dir, 'best_model.pt'))
-        wandb.log_artifact(at, aliases=[f"best_model_{wandb.run.id}"])
+        torch.save(model.state_dict(), os.path.join(wandb_logger.experiment.dir, 'best_model.pt'))
+        artifact_name = f"{wandb_logger.experiment.id}_model"
+        at = wandb_logger.experiment.Artifact(artifact_name, type="model")
+        at.add_file(os.path.join(wandb_logger.experiment.dir, 'best_model.pt'))
+        wandb_logger.experiment.log_artifact(at, aliases=[f"best_model_{wandb_logger.experiment.id}"])
         best_f1 = mean_f1
         best_accuracy = mean_accuracy
         

@@ -53,7 +53,7 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
 
 def load_and_process_data(file_path):
     df = pd.read_csv(file_path)
-    df_train, df_val = train_test_split(df, test_size=0.2, random_state=RANDOM_SEED, stratify=df.label)
-    return df_train, df_val
+    # df_train, df_val = train_test_split(df, test_size=0.2, random_state=RANDOM_SEED, stratify=df.label)
+    return df
 
 
