@@ -15,12 +15,11 @@ os.environ['CUDA_VISIBLE_DEVICES']='1'
 # Specify the hyperparameters
 parameter_dict = {
     "lr": {"values": [2e-5, 3e-5, 5e-5]},
-    "epochs": {"values": [2,3,4]},
-    "batch_size": {"values": [16, 32, 64, 128]},
+    "epochs": {"values": [2, 3, 4, 5]},
+    "batch_size": {"values": [32, 64, 128]},
     "max_len": {"values": [64, 128, 256]},
     "model_name": {"values": ["bert-base-uncased", "roberta-base",
-                               "distilbert-base-uncased", "albert-base-v2",
-                               "t5-base"]}
+                               "distilbert-base-uncased"]}
 }
 
 sweep_config = {
@@ -39,5 +38,5 @@ sweep_config = {
 # Run the hyperparameter optimization
 # sweep_id = wandb.sweep(sweep_config, project="master-thesis")
 # wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
-sweep_id = 's4r3y92d'
+sweep_id = '7qqvyt02'
 wandb.agent(sweep_id, function=hyperparameter_optimization, project="master-thesis")
