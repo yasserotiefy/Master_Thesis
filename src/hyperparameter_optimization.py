@@ -11,7 +11,9 @@ from pytorch_lightning.loggers import WandbLogger
 import wandb
 
 
-file_path = "data/argument_relation_class.csv"  # replace with the path to your data file
+file_path = (
+    "data/argument_relation_class.csv"  # replace with the path to your data file
+)
 
 # Load and process the data
 df_train = load_and_process_data(file_path)
@@ -22,21 +24,20 @@ pl.seed_everything(42)
 best_f1 = 0
 best_accuracy = 0
 
+
 def hyperparameter_optimization(config=None):
+    """Hyperparameter optimization using wandb sweeps."""
+
     global best_f1
     global best_accuracy
-    """Hyperparameter optimization using wandb sweeps.
-
-    """
     # Initialize the wandb logger
-    with wandb.init(config=config):
+    with wandb.init():
         config = wandb.config
         current_id = wandb.run.id
-        
-    wandb_logger = WandbLogger(project="master-thesis", id=current_id)
+
+    wandb_logger = WandbLogger()
 
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-
 
     tokenizer = AutoTokenizer.from_pretrained(config.model_name)
     os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -47,15 +48,26 @@ def hyperparameter_optimization(config=None):
     model = ArgumentModel(config.model_name, config.lr)
 
     # implement cross validation
-    for fold, (train_idx, val_idx) in enumerate(kf.split(X=df_train, y=df_train.label.values)):
+    for fold, (train_idx, val_idx) in enumerate(
+        kf.split(X=df_train, y=df_train.label.values)
+    ):
         print(f"Fold: {fold}")
-        train_data_loader = create_data_loader(df_train.iloc[train_idx], tokenizer, config.max_len, config.batch_size)
-        val_data_loader = create_data_loader(df_train.iloc[val_idx], tokenizer, config.max_len, config.batch_size)
+        train_data_loader = create_data_loader(
+            df_train.iloc[train_idx], tokenizer, config.max_len, config.batch_size
+        )
+        val_data_loader = create_data_loader(
+            df_train.iloc[val_idx], tokenizer, config.max_len, config.batch_size
+        )
 
-
-        trainer = pl.Trainer(devices=1, accelerator='gpu', logger=wandb_logger, 
-                                max_epochs=config.epochs, min_epochs=config.epochs, 
-                                strategy="auto", log_every_n_steps=1)
+        trainer = pl.Trainer(
+            devices=1,
+            accelerator="gpu",
+            logger=wandb_logger,
+            max_epochs=config.epochs,
+            min_epochs=config.epochs,
+            strategy="auto",
+            log_every_n_steps=1,
+        )
         trainer.fit(model, train_data_loader, val_data_loader)
         metrics = trainer.validate(model, val_data_loader)
         print(metrics)
@@ -74,18 +86,24 @@ def hyperparameter_optimization(config=None):
     std_f1 = val_f1_scores.std()
 
     # Log the mean and standard deviation to wandb
-    wandb_logger.log_metrics({"mean_accuracy": mean_accuracy, "std_accuracy": std_accuracy})
+    wandb_logger.log_metrics(
+        {"mean_accuracy": mean_accuracy, "std_accuracy": std_accuracy}
+    )
     wandb_logger.log_metrics({"mean_f1": mean_f1, "std_f1": std_f1})
-    
+
     if mean_f1 > best_f1:
         # Save the best model to wandb
-        torch.save(model.state_dict(), os.path.join(wandb_logger.experiment.dir, 'best_model.pt'))
+        torch.save(
+            model.state_dict(),
+            os.path.join(wandb_logger.experiment.dir, "best_model.pt"),
+        )
         artifact_name = f"{wandb_logger.experiment.id}_model"
-        at = wandb.Artifact(artifact_name, type="model")
-        at.add_file(os.path.join(wandb_logger.experiment.dir, 'best_model.pt'))
-        wandb_logger.experiment.log_artifact(at, aliases=[f"best_model_{wandb_logger.experiment.id}"])
+        at = wandb_logger.use_artifact(artifact_name, "model")
+        at.add_file(os.path.join(wandb_logger.experiment.dir, "best_model.pt"))
+        wandb_logger.experiment.log_artifact(
+            at, aliases=[f"best_model_{wandb_logger.experiment.id}"]
+        )
         best_f1 = mean_f1
         best_accuracy = mean_accuracy
-        
 
     return best_accuracy, best_f1

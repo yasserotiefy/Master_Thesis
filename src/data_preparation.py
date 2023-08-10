@@ -25,35 +25,31 @@ class ArgumentDataset(Dataset):
             add_special_tokens=True,
             max_length=self.max_len,
             return_token_type_ids=False,
-            padding='max_length',
+            padding="max_length",
             return_attention_mask=True,
-            return_tensors='pt',
-            truncation=True
+            return_tensors="pt",
+            truncation=True,
         )
 
         return {
-          'input_ids': encoding['input_ids'].flatten(),
-          'attention_mask': encoding['attention_mask'].flatten(),
-          'label': torch.tensor(label, dtype=torch.long)
+            "input_ids": encoding["input_ids"].flatten(),
+            "attention_mask": encoding["attention_mask"].flatten(),
+            "label": torch.tensor(label, dtype=torch.long),
         }
+
 
 def create_data_loader(df, tokenizer, max_len, batch_size):
     ds = ArgumentDataset(
         texts=df.text.to_numpy(),
         labels=df.label.to_numpy(),
         tokenizer=tokenizer,
-        max_len=max_len
+        max_len=max_len,
     )
 
-    return DataLoader(
-        ds,
-        batch_size=batch_size,
-        num_workers=4
-    )
+    return DataLoader(ds, batch_size=batch_size, num_workers=4)
+
 
 def load_and_process_data(file_path):
     df = pd.read_csv(file_path)
     # df_train, df_val = train_test_split(df, test_size=0.2, random_state=RANDOM_SEED, stratify=df.label)
     return df
-
-
