@@ -10,6 +10,8 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 import wandb
 
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
+
 
 file_path = (
     "data/argument_relation_class.csv"  # replace with the path to your data file
@@ -31,16 +33,15 @@ def hyperparameter_optimization(config=None):
     global best_f1
     global best_accuracy
     # Initialize the wandb logger
-    with wandb.init():
+    with wandb.init(config=config):
         config = wandb.config
         current_id = wandb.run.id
 
-    wandb_logger = WandbLogger()
+    wandb_logger = WandbLogger(project="master-thesis", id=current_id)
 
-    kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    kf = StratifiedKFold(n_splits=7, shuffle=True, random_state=42)
 
-    tokenizer = AutoTokenizer.from_pretrained(config.model_name)
-    os.environ["TOKENIZERS_PARALLELISM"] = "true"
+    tokenizer = AutoTokenizer.from_pretrained(config.model_name, force_download=True)
 
     val_accuracies = []
     val_f1_scores = []
@@ -51,12 +52,12 @@ def hyperparameter_optimization(config=None):
     for fold, (train_idx, val_idx) in enumerate(
         kf.split(X=df_train, y=df_train.label.values)
     ):
-        print(f"Fold: {fold}")
+        
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, config.batch_size
+            df_train.iloc[train_idx], tokenizer, config.max_len, 128
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, config.batch_size
+            df_train.iloc[val_idx], tokenizer, config.max_len, 128
         )
 
         trainer = pl.Trainer(
@@ -70,11 +71,12 @@ def hyperparameter_optimization(config=None):
         )
         trainer.fit(model, train_data_loader, val_data_loader)
         metrics = trainer.validate(model, val_data_loader)
-        print(metrics)
         accuracy = metrics[0]["val_acc"]
         f1 = metrics[0]["val_f1"]
         val_accuracies.append(accuracy)
         val_f1_scores.append(f1)
+
+        wandb_logger.log_metrics({f"fold_accuracy": accuracy, "fold_f1": f1})
 
     val_accuracies = np.array(val_accuracies)
     val_f1_scores = np.array(val_f1_scores)
@@ -98,12 +100,14 @@ def hyperparameter_optimization(config=None):
             os.path.join(wandb_logger.experiment.dir, "best_model.pt"),
         )
         artifact_name = f"{wandb_logger.experiment.id}_model"
-        at = wandb_logger.use_artifact(artifact_name, "model")
+        at = wandb.Artifact(artifact_name, type="model")
         at.add_file(os.path.join(wandb_logger.experiment.dir, "best_model.pt"))
         wandb_logger.experiment.log_artifact(
             at, aliases=[f"best_model_{wandb_logger.experiment.id}"]
         )
         best_f1 = mean_f1
         best_accuracy = mean_accuracy
+
+    torch.cuda.empty_cache()
 
     return best_accuracy, best_f1

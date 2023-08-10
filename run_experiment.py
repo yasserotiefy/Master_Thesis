@@ -16,7 +16,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 parameter_dict = {
     "lr": {"values": [2e-5, 3e-5, 5e-5]},
     "epochs": {"values": [2, 3, 4, 5]},
-    "batch_size": {"values": [32, 64, 128]},
     "max_len": {"values": [64, 128, 256]},
     "model_name": {
         "values": [
@@ -24,7 +23,6 @@ parameter_dict = {
             "roberta-base",
             "distilbert-base-uncased",
             "raruidol/ArgumentMining-EN-ARI-Debate",
-            "Umarpreet/argumentGPT2-large",
             "raruidol/ArgumentMining-EN-AC-Essay-Fin",
             "raruidol/ArgumentMining-EN-AC-Financial",
             "raruidol/ArgumentMining-EN-CN-ARI-Essay-Fin",
@@ -42,7 +40,7 @@ sweep_config = {
 }
 
 # Run the hyperparameter optimization
-sweep_id = wandb.sweep(sweep_config, project="master-thesis")
+# sweep_id = wandb.sweep(sweep_config, project="master-thesis")
 # wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
-# sweep_id = '7qqvyt02'
+sweep_id = 'u0vtjisv'
 wandb.agent(sweep_id, function=hyperparameter_optimization, project="master-thesis")
