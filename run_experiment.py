@@ -9,7 +9,7 @@ load_dotenv()
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"] = "3"
 # os.environ['TORCH_USE_CUDA_DSA'] = '1'
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 # Specify the hyperparameters
@@ -40,7 +40,8 @@ sweep_config = {
 }
 
 # Run the hyperparameter optimization
+sweep_id = '6aljid8l'
 # sweep_id = wandb.sweep(sweep_config, project="master-thesis")
 # wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
-sweep_id = 'u0vtjisv'
+
 wandb.agent(sweep_id, function=hyperparameter_optimization, project="master-thesis")

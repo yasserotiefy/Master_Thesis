@@ -76,7 +76,7 @@ def hyperparameter_optimization(config=None):
         val_accuracies.append(accuracy)
         val_f1_scores.append(f1)
 
-        wandb_logger.log_metrics({f"fold_accuracy": accuracy, "fold_f1": f1})
+        wandb_logger.log_metrics({f"fold_accuracy": accuracy, "fold_f1": f1}, step=fold)
 
     val_accuracies = np.array(val_accuracies)
     val_f1_scores = np.array(val_f1_scores)
