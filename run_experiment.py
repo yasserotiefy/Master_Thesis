@@ -9,7 +9,7 @@ load_dotenv()
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"] = "3"
 # os.environ['TORCH_USE_CUDA_DSA'] = '1'
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 # Specify the hyperparameters

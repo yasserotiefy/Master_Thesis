@@ -59,10 +59,10 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 512
+            df_train.iloc[train_idx], tokenizer, config.max_len, 128
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 512
+            df_train.iloc[val_idx], tokenizer, config.max_len, 128
         )
 
         trainer = pl.Trainer(
