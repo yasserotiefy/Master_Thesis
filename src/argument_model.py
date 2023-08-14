@@ -1,9 +1,11 @@
+from typing import Any
 import torch
 import pytorch_lightning as pl
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from transformers import AutoModelForSequenceClassification
-from torchmetrics.classification import Accuracy, F1Score as F1
+from torchmetrics.classification import Accuracy, F1Score as F1, Precision, Recall
+from torchmetrics import ConfusionMatrix
 
 
 class ArgumentModel(pl.LightningModule):
@@ -19,18 +21,20 @@ class ArgumentModel(pl.LightningModule):
         self.loss_fn = CrossEntropyLoss()
         self.lr = lr
 
-        self.accuracy = Accuracy(task="multiclass", num_classes=2)
+        self.accuracy = Accuracy(task="multiclass", num_classes=2, average="macro")
         self.f1 = F1(task="multiclass", num_classes=2, average="macro")
-        # self.val_accuracy = Accuracy(task="multiclass", num_classes=2)
-        # self.val_f1 = F1(task='multiclass', num_classes=2)
+        self.precision = Precision(task="multiclass", num_classes=2, average="macro")
+        self.recall = Recall(task="multiclass", num_classes=2, average="macro")
+        self.confusion_matrix = ConfusionMatrix(task="multiclass", num_classes=2)
+
 
     def forward(self, input_ids, attention_mask, labels=None):
-        labels = torch.nn.functional.one_hot(labels, num_classes=2).float()
         outputs = self.model(input_ids, attention_mask=attention_mask)
         logits = outputs.logits
 
-
         if labels is not None:
+            labels = torch.nn.functional.one_hot(labels, num_classes=2).float()
+
             loss = self.loss_fn(logits, labels)
             return loss, logits
         else:
@@ -61,6 +65,20 @@ class ArgumentModel(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
         )
+        self.log(
+            "train_precision",
+            self.precision(preds, labels),
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+        )
+        self.log(
+            "train_recall",
+            self.recall(preds, labels),
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -72,10 +90,22 @@ class ArgumentModel(pl.LightningModule):
         pred = torch.argmax(logits, dim=1) # convert logits to 1-hot encoding
 
         self.log("val_loss", loss, prog_bar=True)
-        self.log("val_acc", self.accuracy(pred, labels), prog_bar=True)
-        self.log("val_f1", self.f1(pred, labels), prog_bar=True)
+        self.log("val_acc", self.accuracy(pred, labels), prog_bar=True, on_epoch=True)
+        self.log("val_f1", self.f1(pred, labels), prog_bar=True, on_epoch=True)
+        self.log("val_precision", self.precision(pred, labels), prog_bar=True, on_epoch=True)
+        self.log("val_recall", self.recall(pred, labels), prog_bar=True, on_epoch=True)
+
 
         return loss
+    
+    def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: int = 0):
+        input_ids = batch["input_ids"]
+        attention_mask = batch["attention_mask"]
+
+        logits = self.forward(input_ids, attention_mask)
+        pred = torch.argmax(logits, dim=1)
+
+        return pred
 
     def configure_optimizers(self):
         return Adam(self.parameters(), lr=self.lr)

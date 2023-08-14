@@ -9,7 +9,7 @@ load_dotenv()
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"] = "3"
 # os.environ['TORCH_USE_CUDA_DSA'] = '1'
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 # Specify the hyperparameters
@@ -34,13 +34,13 @@ parameter_dict = {
 
 sweep_config = {
     "method": "bayes",
-    "metric": {"name": "mean_f1", "goal": "maximize"},
+    "metric": {"name": "mean_f1", "goal": "maximize", "target": 0.999},
     "parameters": parameter_dict,
     "early_terminate": {"type": "hyperband", "min_iter": 10},
 }
 
 # Run the hyperparameter optimization
-sweep_id = '6aljid8l'
+sweep_id = '5tgsh1kw'
 # sweep_id = wandb.sweep(sweep_config, project="master-thesis")
 # wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
 

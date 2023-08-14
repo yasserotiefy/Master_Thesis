@@ -39,12 +39,17 @@ def hyperparameter_optimization(config=None):
 
     wandb_logger = WandbLogger(project="master-thesis", id=current_id)
 
-    kf = StratifiedKFold(n_splits=7, shuffle=True, random_state=42)
+    kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     tokenizer = AutoTokenizer.from_pretrained(config.model_name, force_download=True)
 
     val_accuracies = []
     val_f1_scores = []
+    val_precision = []
+    val_recall = []
+    truth = []
+    preds = []
+
 
     model = ArgumentModel(config.model_name, config.lr)
 
@@ -54,10 +59,10 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 128
+            df_train.iloc[train_idx], tokenizer, config.max_len, 512
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 128
+            df_train.iloc[val_idx], tokenizer, config.max_len, 512
         )
 
         trainer = pl.Trainer(
@@ -71,27 +76,65 @@ def hyperparameter_optimization(config=None):
         )
         trainer.fit(model, train_data_loader, val_data_loader)
         metrics = trainer.validate(model, val_data_loader)
+
         accuracy = metrics[0]["val_acc"]
         f1 = metrics[0]["val_f1"]
+        precision = metrics[0]["val_precision"]
+        recall = metrics[0]["val_recall"]
         val_accuracies.append(accuracy)
         val_f1_scores.append(f1)
+        val_precision.append(precision)
+        val_recall.append(recall)
 
         wandb_logger.log_metrics({f"fold_accuracy": accuracy, "fold_f1": f1}, step=fold)
+        wandb_logger.log_metrics(
+            {f"fold_precision": precision, "fold_recall": recall}, step=fold
+        )
+
+        pred = trainer.predict(model, val_data_loader)
+        for tensor in pred:
+            preds.extend(tensor.tolist())
+
+        truth.extend(df_train.iloc[val_idx].label.values)
 
     val_accuracies = np.array(val_accuracies)
     val_f1_scores = np.array(val_f1_scores)
+    val_precision = np.array(val_precision)
+    val_recall = np.array(val_recall)
 
     # Calculate the mean and standard deviation
     mean_accuracy = val_accuracies.mean()
     std_accuracy = val_accuracies.std()
     mean_f1 = val_f1_scores.mean()
     std_f1 = val_f1_scores.std()
+    mean_precision = val_precision.mean()
+    std_precision = val_precision.std()
+    mean_recall = val_recall.mean()
+    std_recall = val_recall.std()
+
 
     # Log the mean and standard deviation to wandb
     wandb_logger.log_metrics(
         {"mean_accuracy": mean_accuracy, "std_accuracy": std_accuracy}
     )
     wandb_logger.log_metrics({"mean_f1": mean_f1, "std_f1": std_f1})
+    wandb_logger.log_metrics(
+        {"mean_precision": mean_precision, "std_precision": std_precision}
+    )
+    wandb_logger.log_metrics({"mean_recall": mean_recall, "std_recall": std_recall})
+
+
+    # Log the confusion matrix to wandb
+    wandb_logger.experiment.log(
+        {
+            "confusion_matrix": wandb.plot.confusion_matrix(
+                probs=None,
+                y_true=truth,
+                preds=preds,
+                class_names=["Not_Related", "Related"],
+            )
+        }
+    )
 
     if mean_f1 > best_f1:
         # Save the best model to wandb
