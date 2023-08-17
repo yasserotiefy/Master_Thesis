@@ -157,7 +157,7 @@ def hyperparameter_optimization(config=None):
         wandb.alert(
             title='High F1 score',
             text=f'F1 score {mean_f1} is a highest F1 score so far.',
-            level=AlertLevel.WARN,
+            level=AlertLevel.INFO,
             wait_duration=timedelta(minutes=5)
         )
 
