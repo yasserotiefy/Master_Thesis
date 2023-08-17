@@ -9,6 +9,9 @@ import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 import wandb
+from datetime import timedelta
+import wandb
+from wandb import AlertLevel
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
@@ -150,6 +153,13 @@ def hyperparameter_optimization(config=None):
         )
         best_f1 = mean_f1
         best_accuracy = mean_accuracy
+
+        wandb.alert(
+            title='High F1 score',
+            text=f'F1 score {mean_f1} is a highest F1 score so far.',
+            level=AlertLevel.WARN,
+            wait_duration=timedelta(minutes=5)
+        )
 
     torch.cuda.empty_cache()
 
