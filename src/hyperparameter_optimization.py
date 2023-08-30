@@ -44,7 +44,8 @@ def hyperparameter_optimization(config=None):
 
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-    tokenizer = AutoTokenizer.from_pretrained(config.model_name, force_download=True)
+    tokenizer = AutoTokenizer.from_pretrained(config.model_name, force_download=True,
+                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"])
 
     val_accuracies = []
     val_f1_scores = []
@@ -62,10 +63,10 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 128
+            df_train.iloc[train_idx], tokenizer, config.max_len, 8
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 128
+            df_train.iloc[val_idx], tokenizer, config.max_len, 8
         )
 
         trainer = pl.Trainer(

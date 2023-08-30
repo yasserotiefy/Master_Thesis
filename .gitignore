@@ -163,4 +163,8 @@ lightning_logs/
 logs/
 wandb/
 master-thesis/
+*.hdf5
+*.parquet
+*.json
+results/
 
