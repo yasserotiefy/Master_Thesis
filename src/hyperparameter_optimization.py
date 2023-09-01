@@ -44,7 +44,7 @@ def hyperparameter_optimization(config=None):
 
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-    tokenizer = AutoTokenizer.from_pretrained(config.model_name, force_download=True,
+    tokenizer = AutoTokenizer.from_pretrained(config.model_name,
                                               token=os.environ["HUGGING_FACE_HUB_TOKEN"])
 
     val_accuracies = []
@@ -63,10 +63,10 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 8
+            df_train.iloc[train_idx], tokenizer, config.max_len, 128
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 8
+            df_train.iloc[val_idx], tokenizer, config.max_len, 128
         )
 
         trainer = pl.Trainer(
@@ -140,18 +140,39 @@ def hyperparameter_optimization(config=None):
         }
     )
 
+    # wandb_logger.experiment.log(
+    #     {
+    #         "PR_Curve": wandb.plot.pr_curve(
+    #             probs=None,
+    #             y_true=truth,
+    #             preds=preds,
+    #             class_names=["Not_Related", "Related"],
+    #         )
+    #     }
+    # )
+
+    # wandb_logger.experiment.log(
+    #     {
+    #         "ROC_Curve": wandb.plot.roc_curve(
+    #             y_true=truth,
+    #             preds=preds,
+    #             labels=["Not_Related", "Related"],
+    #         )
+    #     }
+    # )
+
     if mean_f1 > best_f1:
         # Save the best model to wandb
-        torch.save(
-            model.state_dict(),
-            os.path.join(wandb_logger.experiment.dir, "best_model.pt"),
-        )
-        artifact_name = f"{wandb_logger.experiment.id}_model"
-        at = wandb.Artifact(artifact_name, type="model")
-        at.add_file(os.path.join(wandb_logger.experiment.dir, "best_model.pt"))
-        wandb_logger.experiment.log_artifact(
-            at, aliases=[f"best_model_{wandb_logger.experiment.id}"]
-        )
+        # torch.save(
+        #     model.state_dict(),
+        #     os.path.join(wandb_logger.experiment.dir, "best_model.pt"),
+        # )
+        # artifact_name = f"{wandb_logger.experiment.id}_model"
+        # at = wandb.Artifact(artifact_name, type="model")
+        # at.add_file(os.path.join(wandb_logger.experiment.dir, "best_model.pt"))
+        # wandb_logger.experiment.log_artifact(
+        #     at, aliases=[f"best_model_{wandb_logger.experiment.id}"]
+        # )
         best_f1 = mean_f1
         best_accuracy = mean_accuracy
 

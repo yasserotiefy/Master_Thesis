@@ -27,12 +27,12 @@ parameter_dict = {
             # # "raruidol/ArgumentMining-EN-AC-Financial",
             # # "raruidol/ArgumentMining-EN-CN-ARI-Essay-Fin",
             # "chkla/roberta-argument",
-            "lmsys/vicuna-13b-v1.5-16k",
+            # "lmsys/vicuna-13b-v1.5-16k",
             "bigscience/bloom-3b",
-            "chavinlo/gpt4-x-alpaca",
-            "CarperAI/stable-vicuna-13b-delta",
-            "meta-llama/Llama-2-7b-hf",
-            "databricks/dolly-v2-7b",
+            # "chavinlo/gpt4-x-alpaca",
+            # "CarperAI/stable-vicuna-13b-delta",
+            # "meta-llama/Llama-2-7b-hf",
+            # "databricks/dolly-v2-7b",
         ]
     },
 }
@@ -45,7 +45,7 @@ sweep_config = {
 }
 
 # Run the hyperparameter optimization
-sweep_id = '66is5x8d'
+sweep_id = 'h6mye6et'
 # sweep_id = wandb.sweep(sweep_config, project="master-thesis")
 # wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
 

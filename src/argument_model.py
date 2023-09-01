@@ -13,7 +13,7 @@ class ArgumentModel(pl.LightningModule):
     def __init__(self, model_name, lr):
         super().__init__()
 
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name, force_download=True, 
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_name, 
                                                                         num_labels=2, ignore_mismatched_sizes=True,
                                                                         token=os.environ["HUGGING_FACE_HUB_TOKEN"])
         # freeze all parameters except the last layer
