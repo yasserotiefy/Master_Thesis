@@ -40,12 +40,14 @@ def hyperparameter_optimization(config=None):
         config = wandb.config
         current_id = wandb.run.id
 
-    wandb_logger = WandbLogger(project="master-thesis", id=current_id)
+    wandb_logger = WandbLogger(project="master-thesis", id=current_id, log_model=False, save_dir="/home/master-thesis/")
 
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     tokenizer = AutoTokenizer.from_pretrained(config.model_name,
-                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"])
+                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"],
+                                              use_fast=False,
+                                              legacy=False)
 
     val_accuracies = []
     val_f1_scores = []
@@ -63,10 +65,10 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 128
+            df_train.iloc[train_idx], tokenizer, config.max_len, 16
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 128
+            df_train.iloc[val_idx], tokenizer, config.max_len, 16
         )
 
         trainer = pl.Trainer(
@@ -77,6 +79,7 @@ def hyperparameter_optimization(config=None):
             min_epochs=config.epochs,
             strategy="auto",
             log_every_n_steps=1,
+            enable_checkpointing=False,
         )
         trainer.fit(model, train_data_loader, val_data_loader)
         metrics = trainer.validate(model, val_data_loader)

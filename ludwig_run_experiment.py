@@ -20,14 +20,14 @@ parameter_dict = {
     "max_len": {"values": [64, 128, 256]},
     "model_name": {
         "values": [
-            "lmsys/vicuna-13b-v1.5-16k",
-            "bigscience/bloom-3b",
-            "chavinlo/gpt4-x-alpaca",
-            "CarperAI/stable-vicuna-13b-delta",
+            # "lmsys/vicuna-13b-v1.5-16k",
+            # "bigscience/bloom-3b",
+            # "chavinlo/gpt4-x-alpaca",
+            # "CarperAI/stable-vicuna-13b-delta",
             "meta-llama/Llama-2-7b-hf",
             # "raruidol/ArgumentMining-EN-ARI-Debate",
-            "databricks/dolly-v2-7b",
-            "chkla/roberta-argument"
+            # "databricks/dolly-v2-7b",
+            # "chkla/roberta-argument"
 
 
 

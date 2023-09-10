@@ -78,7 +78,7 @@ def hyperparameter_optimization(config=None):
                 "trainer": {
                     "learning_rate": config.lr,  # learning rate of the optimizer
                     "epochs": config.epochs,  # We'll train for three epochs. Training longer might give
-                    "batch_size": 32,  # Batch size of the training data
+                    "batch_size": 64,  # Batch size of the training data
                 }
             }
 
@@ -92,7 +92,7 @@ def hyperparameter_optimization(config=None):
         preds = []
         label_probs = []
 
-        model = LudwigModel(ludwig_config, logging_level=logging.INFO, gpus=[1])
+        model = LudwigModel(ludwig_config, logging_level=logging.INFO, gpus=[0])
         # implement cross validation
         for fold, (train_idx, val_idx) in enumerate(
             kf.split(X=df_train, y=df_train.label.values)
@@ -102,11 +102,17 @@ def hyperparameter_optimization(config=None):
             val_data = df_train.iloc[val_idx]
 
             
-            train_stats, preprocessed_data, output_directory = model.train(dataset=train_data)
+            train_stats, preprocessed_data, output_directory = model.train(dataset=train_data,
+                                                                           skip_save_model=True,
+                                                                           skip_save_progress=True,
+                                                                           skip_save_log=True,
+                                                                           skip_save_processed_input=True,
+                                                                           output_directory="/home/")
             test_stats, predictions, output_directory = model.evaluate(
                                                                         val_data,
                                                                         collect_predictions=True,
-                                                                        collect_overall_stats=True
+                                                                        collect_overall_stats=True,
+                                                                        skip_save_eval_stats=True,
                                                                         )
 
             # print(test_stats)
@@ -134,11 +140,12 @@ def hyperparameter_optimization(config=None):
             wandb.log({f"fold_roc_auc": roc_auc}, step=fold)
             wandb.log({f"fold_loss": loss}, step=fold)
             
-            predictions, output_directory = model.predict(val_data["text"].to_frame())
+            predictions, output_directory = model.predict(val_data["text"].to_frame(),
+                                                          return_type="dict")
 
-            preds.extend(predictions.label_predictions.values)
+            preds.extend(predictions.label_predictions.values.astype(str))
 
-            truth.extend(df_train.iloc[val_idx].label.values)
+            truth.extend(df_train.iloc[val_idx].label.values.astype(str))
             
 
             print("========================================= Done with fold =========================================")
