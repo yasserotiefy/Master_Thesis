@@ -167,4 +167,7 @@ master-thesis/
 *.parquet
 *.json
 results/
+ArgumentAnnotatedEssays-1.0/
+
+
 
