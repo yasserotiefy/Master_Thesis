@@ -70,7 +70,8 @@ for filename in os.listdir(input_dir):
 # Concatenate all the dataframes into a single dataframe
 final_df = pd.concat(list_of_dataframes)
 
-# concate claim and premise texts with [SEP] token
+
+# concate claim and premise str with [SEP] token
 final_df["text"] = final_df["Claim"] + " [SEP] " + final_df["Premise"]
 
 # Create label
@@ -97,7 +98,7 @@ for claim in unique_claims:
     # Iterate through premises
     for premise in premises:
         # Create negative example by concatenating claim and premise with [SEP] token
-        negative_text = claim + " [SEP] " + premise
+        negative_text = str(claim) + " [SEP] " + str(premise)
         
         # Append negative example to list of negative examples
         negative_texts.append(negative_text)
@@ -117,6 +118,9 @@ final_df = final_df.sample(frac=1).reset_index(drop=True)
 
 # Drop unnecessary columns
 final_df = final_df.drop(["Claim", "Premise", "Relation Type"], axis=1)
+
+# convert label to 0 and 1
+final_df["label"] = final_df["label"].apply(lambda x: 1 if x == "Related" else 0)
 
 # Save the final dataframe as a CSV
 final_df.to_csv(os.path.join(output_dir, "essay-data.csv"), index=False)
