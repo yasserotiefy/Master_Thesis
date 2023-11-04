@@ -1,0 +1,8 @@
+Results analysis aspects and there relation with mean f1-score:
+    1. Hyperparameters, for finetuning and prompt engineering (generation strategy)
+    2. Trained task (finetuning, prompt)
+    3. LLM archticture (encoder, decoder, attention, ..)
+    4. Model size
+    5. Model class (General purpose, debate based models, financial based models)
+    6. Training time
+    
