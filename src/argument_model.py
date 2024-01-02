@@ -6,13 +6,16 @@ from torch.optim import Adam
 from transformers import AutoModelForSequenceClassification
 from torchmetrics.classification import Accuracy, F1Score as F1, Precision, Recall
 from torchmetrics import ConfusionMatrix
+import os
 
 
 class ArgumentModel(pl.LightningModule):
     def __init__(self, model_name, lr):
         super().__init__()
 
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name, force_download=True, num_labels=2, ignore_mismatched_sizes=True)
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_name, 
+                                                                        num_labels=2, ignore_mismatched_sizes=True,
+                                                                        token=os.environ["HUGGING_FACE_HUB_TOKEN"])
         # freeze all parameters except the last layer
         for param in self.model.base_model.parameters():
             param.requires_grad = False
