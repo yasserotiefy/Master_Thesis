@@ -42,7 +42,7 @@ parameter_dict = {
             # "lmsys/vicuna-13b-v1.5",
             # "DebateLabKIT/argument-analyst",
             # "addy88/argument-classifier",
-            "chavinlo/gpt4-x-alpaca",
+            # "chavinlo/gpt4-x-alpaca",
             # "nickmuchi/finbert-tone-finetuned-finance-topic-classification",
             # "nickmuchi/deberta-v3-base-finetuned-finance-text-classification",
             # "ProsusAI/finbert",
@@ -66,6 +66,6 @@ sweep_config = {
 # Run the hyperparameter optimization
 sweep_id = 'lt59j2xu'
 sweep_id = wandb.sweep(sweep_config, project="master-thesis")
-# wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
+wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
 
 wandb.agent(sweep_id, function=hyperparameter_optimization, project="master-thesis")
