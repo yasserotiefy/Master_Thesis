@@ -1,8 +1,8 @@
               precision    recall  f1-score   support
 
-     Related       0.80      0.47      0.59      4899
-   Unrelated       0.62      0.89      0.73      4899
+     Related       0.85      0.75      0.79      4899
+   Unrelated       0.77      0.87      0.82      4899
 
-    accuracy                           0.68      9798
-   macro avg       0.71      0.68      0.66      9798
-weighted avg       0.71      0.68      0.66      9798
+    accuracy                           0.81      9798
+   macro avg       0.81      0.81      0.81      9798
+weighted avg       0.81      0.81      0.81      9798
