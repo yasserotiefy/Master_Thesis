@@ -13,21 +13,27 @@ from datetime import timedelta
 import wandb
 from wandb import AlertLevel
 
-os.environ["TOKENIZERS_PARALLELISM"] = "true"
+import sklearn
+# os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
 file_path = (
-    "data/argument_relation_class.csv"  # replace with the path to your data file
+    "data/orientation-gb-train.tsv"  # replace with the path to your data file
 )
 
 # Load and process the data
 df_train = load_and_process_data(file_path)
+df_test = load_and_process_data("data/orientation-gb-test.tsv")
 
 # Get a list of device ids
 pl.seed_everything(42)
 
 best_f1 = 0
 best_accuracy = 0
+batch_size = 128
+
+preds_parliament = []
+
 
 
 def hyperparameter_optimization(config=None):
@@ -35,6 +41,7 @@ def hyperparameter_optimization(config=None):
 
     global best_f1
     global best_accuracy
+    global preds_parliament
     # Initialize the wandb logger
     with wandb.init(config=config):
         config = wandb.config
@@ -45,9 +52,10 @@ def hyperparameter_optimization(config=None):
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     tokenizer = AutoTokenizer.from_pretrained(config.model_name,
-                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"],
-                                              use_fast=False,
-                                              legacy=False)
+                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"])
+    
+    # LLama3 model has a different padding token
+    tokenizer.pad_token = tokenizer.eos_token
 
     val_accuracies = []
     val_f1_scores = []
@@ -55,7 +63,7 @@ def hyperparameter_optimization(config=None):
     val_recall = []
     truth = []
     preds = []
-
+    
 
     model = ArgumentModel(config.model_name, config.lr)
 
@@ -65,15 +73,16 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 16
+            df_train.iloc[train_idx], tokenizer, config.max_len, batch_size
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 16
+            df_train.iloc[val_idx], tokenizer, config.max_len, batch_size
         )
+        
+
 
         trainer = pl.Trainer(
-            devices=1,
-            accelerator="gpu",
+            accelerator="auto",
             logger=wandb_logger,
             max_epochs=config.epochs,
             min_epochs=config.epochs,
@@ -103,6 +112,20 @@ def hyperparameter_optimization(config=None):
             preds.extend(tensor.tolist())
 
         truth.extend(df_train.iloc[val_idx].label.values)
+        
+        test_data_loader = create_data_loader(
+        df_test, tokenizer, config.max_len, batch_size
+        )
+        
+    
+        pred_parli = trainer.predict(model, test_data_loader)
+        
+        pred_parliament = []
+        for tensor in pred_parli:
+            pred_parliament.extend(tensor.tolist())        
+        
+        
+        
 
     val_accuracies = np.array(val_accuracies)
     val_f1_scores = np.array(val_f1_scores)
@@ -119,6 +142,16 @@ def hyperparameter_optimization(config=None):
     mean_recall = val_recall.mean()
     std_recall = val_recall.std()
 
+    
+    # truth_parliament = df_test.label.values
+    # parliament_test_f1_score = sklearn.metrics.f1_score(truth_parliament, pred_parliament)
+    
+    # wandb_logger.log_metrics({"parliament_test_f1_score": parliament_test_f1_score})
+    
+    df_test["pred_parliament"] = pred_parliament
+    df_test.to_csv("parliemant_predictions.csv", index=False)
+
+
 
     # Log the mean and standard deviation to wandb
     wandb_logger.log_metrics(
@@ -129,6 +162,8 @@ def hyperparameter_optimization(config=None):
         {"mean_precision": mean_precision, "std_precision": std_precision}
     )
     wandb_logger.log_metrics({"mean_recall": mean_recall, "std_recall": std_recall})
+    
+    
 
 
     # Log the confusion matrix to wandb

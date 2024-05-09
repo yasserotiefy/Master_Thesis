@@ -36,7 +36,11 @@ class ArgumentDataset(Dataset):
         }
 
 
+
 def create_data_loader(df, tokenizer, max_len, batch_size):
+    if not "label" in df.columns:
+        df["label"] = 0
+        
     ds = ArgumentDataset(
         texts=df.text.to_numpy(),
         labels=df.label.to_numpy(),
@@ -44,9 +48,9 @@ def create_data_loader(df, tokenizer, max_len, batch_size):
         max_len=max_len
     )
 
-    return DataLoader(ds, batch_size=batch_size, num_workers=4)
+    return DataLoader(ds, batch_size=batch_size, num_workers=16)
 
 
 def load_and_process_data(file_path):
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, sep="\t")
     return df

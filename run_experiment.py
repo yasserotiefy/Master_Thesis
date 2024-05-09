@@ -10,7 +10,7 @@ load_dotenv()
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 # os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"] = "3"
 os.environ['TORCH_USE_CUDA_DSA'] = '1'
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 os.environ["WANDB_DISABLE_CODE"] = "True"
 
 
@@ -19,14 +19,14 @@ torch.set_float32_matmul_precision('high')
 # Specify the hyperparameters
 parameter_dict = {
     "lr": {"values": [2e-5, 3e-5, 5e-5]},
-    "epochs": {"values": [2, 3, 4, 5]},
+    "epochs": {"values": [1, 2, 3, 4, 5]},  #[1, 2, 3, 4, 5]
     "max_len": {"values": [64, 128, 256]},
     "model_name": {
         "values": [
             # "bert-base-uncased",
             # "roberta-base",
             # "distilbert-base-uncased",
-            # "raruidol/ArgumentMining-EN-ARI-Debate",
+            "raruidol/ArgumentMining-EN-ARI-Debate",
             # "raruidol/ArgumentMining-EN-AC-Essay-Fin",
             # # "raruidol/ArgumentMining-EN-AC-Financial",
             # # "raruidol/ArgumentMining-EN-CN-ARI-Essay-Fin",
@@ -50,8 +50,9 @@ parameter_dict = {
             # "NLPScholars/Roberta-Earning-Call-Transcript-Classification",
             # "chavinlo/gpt4-x-alpaca",
             # "CarperAI/stable-vicuna-13b-delta",
-            # "meta-llama/Llama-2-7b-hf",
+            "meta-llama/Llama-2-7b-hf",
             # "databricks/dolly-v2-7b",
+            "meta-llama/Meta-Llama-3-8B"
         ]
     },
 }
@@ -64,8 +65,8 @@ sweep_config = {
 }
 
 # Run the hyperparameter optimization
-sweep_id = 'lt59j2xu'
-sweep_id = wandb.sweep(sweep_config, project="master-thesis")
+# sweep_id = 'g2kinglm'
+sweep_id = wandb.sweep(sweep_config, project="parliament-shared_task")
 wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
 
-wandb.agent(sweep_id, function=hyperparameter_optimization, project="master-thesis")
+wandb.agent(sweep_id, function=hyperparameter_optimization, project="parliament-shared_task")
