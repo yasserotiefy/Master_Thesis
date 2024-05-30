@@ -9,8 +9,8 @@ load_dotenv()
 
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 # os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"] = "3"
-os.environ['TORCH_USE_CUDA_DSA'] = '1'
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# os.environ['TORCH_USE_CUDA_DSA'] = '1'
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 os.environ["WANDB_DISABLE_CODE"] = "True"
 
 
@@ -52,6 +52,8 @@ parameter_dict = {
             # "CarperAI/stable-vicuna-13b-delta",
             # "meta-llama/Llama-2-7b-hf",
             # "databricks/dolly-v2-7b",
+            "meta-llama/Meta-Llama-3-8B"
+            
         ]
     },
 }
@@ -64,8 +66,8 @@ sweep_config = {
 }
 
 # Run the hyperparameter optimization
-sweep_id = 'lt59j2xu'
-sweep_id = wandb.sweep(sweep_config, project="master-thesis")
+sweep_id = 'oiy7msbf'
+# sweep_id = wandb.sweep(sweep_config, project="master-thesis")
 wandb.login(key=os.environ["WANDB_API_KEY"], anonymous="allow")
 
 wandb.agent(sweep_id, function=hyperparameter_optimization, project="master-thesis")

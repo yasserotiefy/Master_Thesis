@@ -13,7 +13,7 @@ from datetime import timedelta
 import wandb
 from wandb import AlertLevel
 
-os.environ["TOKENIZERS_PARALLELISM"] = "true"
+# os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
 file_path = (
@@ -22,6 +22,8 @@ file_path = (
 
 # Load and process the data
 df_train = load_and_process_data(file_path)
+
+batch_size = 64
 
 # Get a list of device ids
 pl.seed_everything(42)
@@ -45,10 +47,10 @@ def hyperparameter_optimization(config=None):
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     tokenizer = AutoTokenizer.from_pretrained(config.model_name,
-                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"],
-                                              use_fast=False,
-                                              legacy=False)
+                                              token=os.environ["HUGGING_FACE_HUB_TOKEN"])
 
+    tokenizer.pad_token = tokenizer.eos_token
+    
     val_accuracies = []
     val_f1_scores = []
     val_precision = []
@@ -65,14 +67,13 @@ def hyperparameter_optimization(config=None):
     ):
         
         train_data_loader = create_data_loader(
-            df_train.iloc[train_idx], tokenizer, config.max_len, 16
+            df_train.iloc[train_idx], tokenizer, config.max_len, batch_size
         )
         val_data_loader = create_data_loader(
-            df_train.iloc[val_idx], tokenizer, config.max_len, 16
+            df_train.iloc[val_idx], tokenizer, config.max_len, batch_size
         )
 
         trainer = pl.Trainer(
-            devices=1,
             accelerator="gpu",
             logger=wandb_logger,
             max_epochs=config.epochs,
